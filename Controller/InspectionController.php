@@ -77,38 +77,47 @@ class InspectionController extends Model
             $lotNo = $req->lotNo;
             $datenow = date("Y-m-d H:i:s");
             $approve = 'N';
-
-            if (count($req->value) === 2) {
-                try {
-                    $stmt_insert = $this->conn->prepare("INSERT INTO TBL_INSPECTION_MASTER (BSNCR_PART_NO,LOT_NO,CAVITY_NO,INSPECTION_VALUE,SIMPLE,ID_RESULT,INSPECTOR,DATE_INSPECTION,MOLD_NO,POINT_NO,TIMESTAMP,APPROVE,WAIT_REINSPECTION) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)");
-                    $arraySample1 = $req->value[0]; // array ที่ส่งมาจากหน้าบ้าน (Sample 1)
-                    $arraySample2 = $req->value[1]; // array ที่ส่งมาจากหน้าบ้าน (Sample 2)
-
-                    // บันทึกทีละ Sample
-                    for ($i = 0; $i < count($arraySample1->valueCheck); $i++) {
-                        //Loop Insert Sample 1
-                        $pointSample1 = $i + 1;
-                        $simple = 1;
-                        foreach ($arraySample1->valueCheck[$i]->valueCheck as $key) {
-                            $stmt_insert->execute([$psthPartNo, $lotNo, $arraySample1->cavity, $key->value, $simple, $key->id_result, $inspector, $date, $moldNo, $pointSample1, $datenow, $approve, 'N']);
-                        }
-                    }
-                    for ($j = 0; $j < count($arraySample2->valueCheck); $j++) {
-                        //Loop Insert Sample 2
-                        $pointSample2 = $j + 1;
-                        $simple = 2;
-                        foreach ($arraySample2->valueCheck[$j]->valueCheck as $key) {
-                            $stmt_insert->execute([$psthPartNo, $lotNo, $arraySample2->cavity, $key->value2, $simple, $key->id_result, $inspector, $date, $moldNo, $pointSample2, $datenow, $approve, 'N']);
-                        }
-                    }
-                    echo json_encode(["err" => false, "msg" => "Success!", "status" => "Ok"]);
-
-                    $this->checkNg($psthPartNo, $moldNo, date("Y-m-d"), $req->time, $inspector); //Check Ng
-                } catch (PDOException $e) {
-                    echo json_encode(["err" => true, "msg" =>  $e->getMessage()]);
-                }
+            $stmt_check = $this->conn->prepare("SELECT m.* FROM TBL_INSPECTION_MASTER m 
+            WHERE m.BSNCR_PART_NO = ? AND m.MOLD_NO = ? 
+            AND TRY_CONVERT(VARCHAR(10),m.DATE_INSPECTION,120) = ? 
+            AND TRY_CONVERT(VARCHAR(5),m.DATE_INSPECTION,108) = ?");
+            $stmt_check->execute([$psthPartNo, $moldNo, date("Y-m-d"), $req->time]);
+            $result_check = $stmt_check->fetchAll(PDO::FETCH_ASSOC);
+            if ($result_check) {
+                echo json_encode(["err" => true,"msg" => "Cannot check again."]);
             } else {
-                echo json_encode(["err" => true, "msg" =>  "Something went wrong!"]);
+                if (count($req->value) === 2) {
+                    try {
+                        $stmt_insert = $this->conn->prepare("INSERT INTO TBL_INSPECTION_MASTER (BSNCR_PART_NO,LOT_NO,CAVITY_NO,INSPECTION_VALUE,SIMPLE,ID_RESULT,INSPECTOR,DATE_INSPECTION,MOLD_NO,POINT_NO,TIMESTAMP,APPROVE,WAIT_REINSPECTION) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)");
+                        $arraySample1 = $req->value[0]; // array ที่ส่งมาจากหน้าบ้าน (Sample 1)
+                        $arraySample2 = $req->value[1]; // array ที่ส่งมาจากหน้าบ้าน (Sample 2)
+
+                        // บันทึกทีละ Sample
+                        for ($i = 0; $i < count($arraySample1->valueCheck); $i++) {
+                            //Loop Insert Sample 1
+                            $pointSample1 = $i + 1;
+                            $simple = 1;
+                            foreach ($arraySample1->valueCheck[$i]->valueCheck as $key) {
+                                $stmt_insert->execute([$psthPartNo, $lotNo, $arraySample1->cavity, $key->value, $simple, $key->id_result, $inspector, $date, $moldNo, $pointSample1, $datenow, $approve, 'N']);
+                            }
+                        }
+                        for ($j = 0; $j < count($arraySample2->valueCheck); $j++) {
+                            //Loop Insert Sample 2
+                            $pointSample2 = $j + 1;
+                            $simple = 2;
+                            foreach ($arraySample2->valueCheck[$j]->valueCheck as $key) {
+                                $stmt_insert->execute([$psthPartNo, $lotNo, $arraySample2->cavity, $key->value2, $simple, $key->id_result, $inspector, $date, $moldNo, $pointSample2, $datenow, $approve, 'N']);
+                            }
+                        }
+                        echo json_encode(["err" => false, "msg" => "Success!", "status" => "Ok"]);
+
+                        $this->checkNg($psthPartNo, $moldNo, date("Y-m-d"), $req->time, $inspector); //Check Ng
+                    } catch (PDOException $e) {
+                        echo json_encode(["err" => true, "msg" =>  $e->getMessage()]);
+                    }
+                } else {
+                    echo json_encode(["err" => true, "msg" =>  "Something went wrong!"]);
+                }
             }
         }
     }
@@ -130,7 +139,7 @@ class InspectionController extends Model
 
             if (count($req->value) === 2) {
                 try {
- 
+
                     $stmt_update = $this->conn->prepare("UPDATE [dbo].[TBL_INSPECTION_MASTER] 
                     SET [INSPECTION_VALUE] = ? ,[APPROVE] = ?,[WAIT_REINSPECTION] = ?,[UPDATED_AT] = ?
                     WHERE BSNCR_PART_NO = ? 
@@ -154,7 +163,7 @@ class InspectionController extends Model
                             $pointSample1 = $i + 1;
                             $simple = 1;
                             foreach ($arraySample1->valueCheck[$i]->valueCheck as $key) {
-                                $stmt_update->execute([$key->value, $approve, $wait,$datenow, $psthPartNo, $moldNo, $dateOld, $req->time, $key->id_result, $simple, $pointSample1,$lotNo]);
+                                $stmt_update->execute([$key->value, $approve, $wait, $datenow, $psthPartNo, $moldNo, $dateOld, $req->time, $key->id_result, $simple, $pointSample1, $lotNo]);
                             }
                         }
                         for ($j = 0; $j < count($arraySample2->valueCheck); $j++) {
@@ -162,7 +171,7 @@ class InspectionController extends Model
                             $pointSample2 = $j + 1;
                             $simple = 2;
                             foreach ($arraySample2->valueCheck[$j]->valueCheck as $key) {
-                                $stmt_update->execute([$key->value2, $approve, $wait,$datenow, $psthPartNo, $moldNo, $dateOld, $req->time, $key->id_result, $simple, $pointSample2,$lotNo]);
+                                $stmt_update->execute([$key->value2, $approve, $wait, $datenow, $psthPartNo, $moldNo, $dateOld, $req->time, $key->id_result, $simple, $pointSample2, $lotNo]);
                             }
                         }
                         echo json_encode(["err" => false, "msg" => "Updated!", "status" => "Ok"]);
