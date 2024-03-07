@@ -16,7 +16,7 @@ class LineNotifyController
         //Message
         $mymessage = "🔔 แจ้งเตือนงาน NG \n"; //Set new line with '\n'
         $mymessage .= "PSTH Part No : `" . $psthPartNo . " #".$mold."` \n";
-        $mymessage .= "Lot No : `" . $lotNo . " #"."` \n";
+        $mymessage .= "Lot No : `" . $lotNo ."` \n";
         $mymessage .= "วันที่ : " .  $date  . " \n";
         $mymessage .= "รอบเวลา : " . $time . " น." . " \n";
         $mymessage .= "สถานะ : " . $status . " \n";
