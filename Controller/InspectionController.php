@@ -84,7 +84,7 @@ class InspectionController extends Model
             $stmt_check->execute([$psthPartNo, $moldNo, date("Y-m-d"), $req->time]);
             $result_check = $stmt_check->fetchAll(PDO::FETCH_ASSOC);
             if ($result_check) {
-                echo json_encode(["err" => true,"msg" => "Cannot check again."]);
+                echo json_encode(["err" => true, "msg" => $req->time . ' ' . 'is inspected!']);
             } else {
                 if (count($req->value) === 2) {
                     try {
