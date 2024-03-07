@@ -8,7 +8,9 @@ class UserController extends Model
     public function getUsers()
     {
         try {
-            $stmt =  $this->conn->prepare("SELECT ROW_NUMBER() OVER(ORDER BY USER_ID) as [No], u.* FROM TBL_USERS u ORDER BY USER_ID ASC");
+            $stmt =  $this->conn->prepare("SELECT ROW_NUMBER() OVER(ORDER BY USER_ID) as [No], u.* FROM TBL_USERS u 
+            WHERE u.ROLE != 'Super Admin'
+            ORDER BY USER_ID ASC");
             $stmt->execute();
             $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
             if ($result) {
