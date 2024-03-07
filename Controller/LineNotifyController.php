@@ -7,7 +7,7 @@ class LineNotifyController
     {
         $this->tokenLine = $_ENV["TOKEN_NOTIFY"];
     }
-    public function alertNotify($psthPartNo,$date,$time,$inspector,$mold)
+    public function alertNotify($psthPartNo,$date,$time,$inspector,$mold,$lotNo)
     {
         
         $status = 'NG';
@@ -16,6 +16,7 @@ class LineNotifyController
         //Message
         $mymessage = "🔔 แจ้งเตือนงาน NG \n"; //Set new line with '\n'
         $mymessage .= "PSTH Part No : `" . $psthPartNo . " #".$mold."` \n";
+        $mymessage .= "Lot No : `" . $lotNo . " #"."` \n";
         $mymessage .= "วันที่ : " .  $date  . " \n";
         $mymessage .= "รอบเวลา : " . $time . " น." . " \n";
         $mymessage .= "สถานะ : " . $status . " \n";

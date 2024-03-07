@@ -34,7 +34,7 @@ class InspectionController extends Model
             echo json_encode(["err" => true, "msg" =>  $e->getMessage()]);
         }
     }
-    public function checkNg($psthPartNo, $mold, $date, $time, $inspector)
+    public function checkNg($psthPartNo, $mold, $date, $time, $inspector,$lotNo)
     {
 
         $stmt = $this->conn->prepare("SELECT a.* 
@@ -61,7 +61,7 @@ class InspectionController extends Model
         $stmt->execute([$psthPartNo, $date, $time, $mold]);
         $result = $stmt->fetch(PDO::FETCH_ASSOC);
         if ($result) {
-            $this->LineNotifyController->alertNotify($psthPartNo, $date, $time, $inspector, $mold);
+            $this->LineNotifyController->alertNotify($psthPartNo, $date, $time, $inspector, $mold,$lotNo);
         }
     }
     public function Inspection($req)
@@ -111,7 +111,7 @@ class InspectionController extends Model
                         }
                         echo json_encode(["err" => false, "msg" => "Success!", "status" => "Ok"]);
 
-                        $this->checkNg($psthPartNo, $moldNo, date("Y-m-d"), $req->time, $inspector); //Check Ng
+                        $this->checkNg($psthPartNo, $moldNo, date("Y-m-d"), $req->time, $inspector,$lotNo); //Check Ng
                     } catch (PDOException $e) {
                         echo json_encode(["err" => true, "msg" =>  $e->getMessage()]);
                     }
@@ -156,7 +156,7 @@ class InspectionController extends Model
                     AND TRY_CONVERT(VARCHAR(5),m.DATE_INSPECTION,108) = ?");
                     $stmt_select->execute([$psthPartNo, $moldNo, $dateOld, $req->time]);
                     $result_select = $stmt_select->fetchAll(PDO::FETCH_ASSOC);
-                    if ((count($arraySample1->valueCheck[0]->valueCheck) * 2) == count($result_select)) {
+                    if ((count($arraySample1->valueCheck[0]->valueCheck) * count($arraySample1->valueCheck) * 2) == count($result_select)) {
                         // บันทึกทีละ Sample
                         for ($i = 0; $i < count($arraySample1->valueCheck); $i++) {
                             //Loop Insert Sample 1
@@ -176,9 +176,9 @@ class InspectionController extends Model
                         }
                         echo json_encode(["err" => false, "msg" => "Updated!", "status" => "Ok"]);
 
-                        $this->checkNg($psthPartNo, $moldNo, $dateOld, $req->time, $inspector); //Check Ng
+                        $this->checkNg($psthPartNo, $moldNo, $dateOld, $req->time, $inspector,$lotNo); //Check Ng
                     } else {
-                        echo json_encode(["err" => true, "msg" => "Master Record Error!"]);
+                        echo json_encode(["err" => true, "msg" => "Master Record Error!", "1" => count($arraySample1->valueCheck[0]->valueCheck) * 2, "2" => count($result_select)]);
                     }
                 } catch (PDOException $e) {
                     echo json_encode(["err" => true, "msg" =>  $e->getMessage()]);
