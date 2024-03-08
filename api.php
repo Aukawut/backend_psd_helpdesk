@@ -89,6 +89,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 case "inspection":
                     $api->InspectionController->Inspection($req);
                     break;
+                case "getRawDataByPartNo":
+                    $api->InspectionController->getRawDataByPartNo($req);
+                    break;
                 case "UpdateInspection":
                     $api->InspectionController->UpdateInspection($req);
                     break;
