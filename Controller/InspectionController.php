@@ -331,6 +331,19 @@ class InspectionController extends Model
             echo json_encode(["err" => true, "msg" => $e->getMessage()]);
         }
     }
+    public function getRawDataByPartNo($req)
+    {
+        try {
+            $stmt = $this->conn->prepare("SELECT m.BSNCR_PART_NO,m.LOT_NO,m.MOLD_NO,m.CAVITY_NO,m.SIMPLE as SAMPLE,r.NAME_RESULT,m.INSPECTION_VALUE,m.DATE_INSPECTION FROM [dbo].[TBL_INSPECTION_MASTER]m 
+            LEFT JOIN [dbo].[TBL_RESULTS] r ON m.ID_RESULT = r.ID_RESULT
+            WHERE m.BSNCR_PART_NO = ? ORDER BY DATE_INSPECTION DESC");
+            $stmt->execute([$req->psthPartNo]);
+            $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            echo json_encode(["err" => false, "result" => $result, "status" => "Ok"]);
+        } catch (PDOException $e) {
+            echo json_encode(["err" => true, "msg" => $e->getMessage()]);
+        }
+    }
     public function approveRecheck($req)
     {
         try {
