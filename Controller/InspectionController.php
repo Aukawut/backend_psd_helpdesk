@@ -106,7 +106,7 @@ class InspectionController extends Model
             } else {
                 if (count($req->value) === 2) {
                     try {
-                        $stmt_insert = $this->conn->prepare("INSERT INTO TBL_INSPECTION_MASTER (BSNCR_PART_NO,LOT_NO,CAVITY_NO,INSPECTION_VALUE,SIMPLE,ID_RESULT,INSPECTOR,DATE_INSPECTION,MOLD_NO,POINT_NO,TIMESTAMP,APPROVE,WAIT_REINSPECTION) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)");
+                        $stmt_insert = $this->conn->prepare("INSERT INTO TBL_INSPECTION_MASTER (BSNCR_PART_NO,LOT_NO,CAVITY_NO,INSPECTION_VALUE,SIMPLE,ID_RESULT,INSPECTOR,DATE_INSPECTION,MOLD_NO,POINT_NO,TIMESTAMP,APPROVE,WAIT_REINSPECTION,ACCEPT) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)");
                         $arraySample1 = $req->value[0]; // array ที่ส่งมาจากหน้าบ้าน (Sample 1)
                         $arraySample2 = $req->value[1]; // array ที่ส่งมาจากหน้าบ้าน (Sample 2)
 
@@ -116,7 +116,7 @@ class InspectionController extends Model
                             $pointSample1 = $i + 1;
                             $simple = 1;
                             foreach ($arraySample1->valueCheck[$i]->valueCheck as $key) {
-                                $stmt_insert->execute([$psthPartNo, $lotNo, $arraySample1->cavity, $key->value, $simple, $key->id_result, $inspector, $date, $moldNo, $pointSample1, $datenow, $approve, 'N']);
+                                $stmt_insert->execute([$psthPartNo, $lotNo, $arraySample1->cavity, $key->value, $simple, $key->id_result, $inspector, $date, $moldNo, $pointSample1, $datenow, $approve, 'N','N']);
                             }
                         }
                         for ($j = 0; $j < count($arraySample2->valueCheck); $j++) {
@@ -124,7 +124,7 @@ class InspectionController extends Model
                             $pointSample2 = $j + 1;
                             $simple = 2;
                             foreach ($arraySample2->valueCheck[$j]->valueCheck as $key) {
-                                $stmt_insert->execute([$psthPartNo, $lotNo, $arraySample2->cavity, $key->value2, $simple, $key->id_result, $inspector, $date, $moldNo, $pointSample2, $datenow, $approve, 'N']);
+                                $stmt_insert->execute([$psthPartNo, $lotNo, $arraySample2->cavity, $key->value2, $simple, $key->id_result, $inspector, $date, $moldNo, $pointSample2, $datenow, $approve, 'N','N']);
                             }
                         }
                         echo json_encode(["err" => false, "msg" => "Success!", "status" => "Ok"]);
