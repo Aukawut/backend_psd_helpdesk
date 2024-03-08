@@ -390,6 +390,32 @@ class InspectionController extends Model
             echo json_encode(["err" => true, "msg" =>  $e->getMessage()]);
         }
     }
+    public function acceptNG($req)
+    {
+        try {
+            $stmt_select  = $this->conn->prepare("SELECT m.* FROM TBL_INSPECTION_MASTER m 
+            WHERE m.BSNCR_PART_NO = ? AND m.MOLD_NO = ? 
+            AND TRY_CONVERT(VARCHAR(10),m.DATE_INSPECTION,120) = ? 
+            AND TRY_CONVERT(VARCHAR(5),m.DATE_INSPECTION,108) = ?
+            ");
+            $stmt_select->execute([$req->psthPartNo, $req->mold, $req->date, $req->time]);
+            $result_select = $stmt_select->fetchAll(PDO::FETCH_ASSOC);
+            if ($result_select) {
+                $stmt_update = $this->conn->prepare("UPDATE TBL_INSPECTION_MASTER 
+                SET APPROVE = ? , WAIT_REINSPECTION = ? ,[ACCEPT] = ?,SUPERVISOR = ?
+                WHERE BSNCR_PART_NO = ? 
+                AND TRY_CONVERT(VARCHAR(10),DATE_INSPECTION,120) = ? 
+                AND TRY_CONVERT(VARCHAR(5),DATE_INSPECTION,108) = ? 
+                AND MOLD_NO = ?");
+                $stmt_update->execute(['Y','Y','Y', $req->approver, $req->psthPartNo, $req->date, $req->time, $req->mold]);
+                echo json_encode(["err" => false, "msg" => "Accepted!", "status" => "Ok"]);
+            } else {
+                echo json_encode(["err" => true, "msg" => "Something went wrong!"]);
+            }
+        } catch (PDOException $e) {
+            echo json_encode(["err" => true, "msg" =>  $e->getMessage()]);
+        }
+    }
     public function unApproveRecheck($req)
     {
         try {

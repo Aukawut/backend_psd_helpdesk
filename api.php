@@ -107,6 +107,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 case "approveRecheck":
                     $api->InspectionController->approveRecheck($req);
                     break;
+                case "acceptNG":
+                    $api->InspectionController->acceptNG($req);
+                    break;
                 case "unApproveRecheck":
                     $api->InspectionController->unApproveRecheck($req);
                     break;
