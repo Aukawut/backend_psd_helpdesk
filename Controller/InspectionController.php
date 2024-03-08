@@ -70,10 +70,11 @@ class InspectionController extends Model
                    c.INSPECTOR,
                    c.APPROVE,
                    c.[WAIT_REINSPECTION],
+                   c.[ACCEPT],
                    CASE WHEN c.APPROVE = 'Y' AND c.WAIT_REINSPECTION = 'Y' THEN 'Waiting User Re-check' ELSE 'Waiting Approve' END AS APPROVAL_STATUS
             FROM [QC_INSPECTION].[dbo].[v_FinalStatusQC_Checked] c
-            GROUP BY c.[BSNCR_PART_NO], c.DATE, c.TIME, c.INSPECTOR, c.MOLD_NO, c.JUDGEMENT, c.LOT_NO, c.APPROVE, c.[WAIT_REINSPECTION]
-        ) a WHERE a.BSNCR_PART_NO = ? AND a.DATE = ? AND a.TIME = ? AND a.MOLD_NO = ? AND a.NG > 0
+            GROUP BY c.[BSNCR_PART_NO], c.DATE, c.TIME, c.INSPECTOR, c.MOLD_NO, c.JUDGEMENT, c.LOT_NO, c.APPROVE, c.[WAIT_REINSPECTION],c.[ACCEPT]
+        ) a WHERE a.BSNCR_PART_NO = ? AND a.DATE = ? AND a.TIME = ? AND a.MOLD_NO = ? AND a.NG > 0 AND a.ACCEPT <> 'Y'
         
         ORDER BY a.[BSNCR_PART_NO], a.DATE, a.TIME DESC");
         $stmt->execute([$psthPartNo, $date, $time, $mold]);
@@ -262,11 +263,12 @@ class InspectionController extends Model
                        c.INSPECTOR,
                        c.APPROVE,
                        c.[WAIT_REINSPECTION],
+					   c.[ACCEPT],
                        CASE WHEN c.APPROVE = 'Y' AND c.WAIT_REINSPECTION = 'Y' THEN 'Waiting User Re-check' ELSE 'Waiting Approve' END AS APPROVAL_STATUS
                 FROM [QC_INSPECTION].[dbo].[v_FinalStatusQC_Checked] c
-                GROUP BY c.[BSNCR_PART_NO], c.DATE, c.TIME, c.INSPECTOR, c.MOLD_NO, c.JUDGEMENT, c.LOT_NO, c.APPROVE, c.[WAIT_REINSPECTION]
+                GROUP BY c.[BSNCR_PART_NO], c.DATE, c.TIME, c.INSPECTOR, c.MOLD_NO, c.JUDGEMENT, c.LOT_NO, c.APPROVE, c.[WAIT_REINSPECTION],c.[ACCEPT]
             ) a 
-            WHERE a.NG > 0
+            WHERE a.NG > 0 AND a.ACCEPT <> 'Y'
             ORDER BY a.[BSNCR_PART_NO], a.DATE, a.TIME DESC");
             $stmt->execute([]);
             $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -433,14 +435,15 @@ class InspectionController extends Model
                                        c.INSPECTOR,
                                        c.APPROVE,
                                        c.[WAIT_REINSPECTION],
+                                       c.[ACCEPT],
                                        CASE WHEN c.APPROVE = 'Y' 
                                        AND c.WAIT_REINSPECTION = 'Y' 
                                        THEN 'Waiting User Re-check' 
                                        ELSE 'Waiting Approve' END AS APPROVAL_STATUS
                                 FROM [QC_INSPECTION].[dbo].[v_FinalStatusQC_Checked] c
-                                GROUP BY c.[BSNCR_PART_NO], c.DATE, c.TIME, c.INSPECTOR, c.MOLD_NO, c.JUDGEMENT, c.LOT_NO, c.APPROVE, c.[WAIT_REINSPECTION]
+                                GROUP BY c.[BSNCR_PART_NO], c.DATE, c.TIME, c.INSPECTOR, c.MOLD_NO, c.JUDGEMENT, c.LOT_NO, c.APPROVE, c.[WAIT_REINSPECTION],c.ACCEPT
                             ) a 
-                           WHERE a.NG > 0
+                           WHERE a.NG > 0 AND a.ACCEPT <> 'Y'
                             ) 
                             SELECT j.* from CTE j 
                             WHERE j.BSNCR_PART_NO = ? AND j.DATE = ? AND j.TIME = ? AND j.MOLD_NO = ?
