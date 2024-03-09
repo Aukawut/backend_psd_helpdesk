@@ -248,28 +248,34 @@ class InspectionController extends Model
     public function getInspectionNG()
     {
         try {
-            $stmt =   $this->conn->prepare("SELECT a.* 
-            FROM (
-                SELECT ROW_NUMBER() OVER(ORDER BY c.[BSNCR_PART_NO] ASC) AS NO,
-                       COUNT([Id]) AS COUNT,
-                       SUM(CASE WHEN STATUS_PART = 'FG' THEN 1 ELSE 0 END) AS FG,
-                       SUM(CASE WHEN STATUS_PART = 'NG' THEN 1 ELSE 0 END) AS NG,
-                       c.[BSNCR_PART_NO],
-                       c.LOT_NO,
-                       c.DATE,
-                       c.TIME,
-                       c.MOLD_NO,
-                       c.JUDGEMENT,
-                       c.INSPECTOR,
-                       c.APPROVE,
-                       c.[WAIT_REINSPECTION],
-					   c.[ACCEPT],
-                       CASE WHEN c.APPROVE = 'Y' AND c.WAIT_REINSPECTION = 'Y' THEN 'Waiting User Re-check' ELSE 'Waiting Approve' END AS APPROVAL_STATUS
-                FROM [QC_INSPECTION].[dbo].[v_FinalStatusQC_Checked] c
-                GROUP BY c.[BSNCR_PART_NO], c.DATE, c.TIME, c.INSPECTOR, c.MOLD_NO, c.JUDGEMENT, c.LOT_NO, c.APPROVE, c.[WAIT_REINSPECTION],c.[ACCEPT]
-            ) a 
-            WHERE a.NG > 0 AND a.ACCEPT <> 'Y'
-            ORDER BY a.[BSNCR_PART_NO], a.DATE, a.TIME DESC");
+            $stmt =   $this->conn->prepare("WITH CTE_STATUS AS (
+                SELECT a.* 
+                            FROM (
+                                SELECT ROW_NUMBER() OVER(ORDER BY c.[BSNCR_PART_NO] ASC) AS NO,
+                                       COUNT([Id]) AS COUNT,
+                                       SUM(CASE WHEN STATUS_PART = 'FG' THEN 1 ELSE 0 END) AS FG,
+                                       SUM(CASE WHEN STATUS_PART = 'NG' THEN 1 ELSE 0 END) AS NG,
+                                       c.[BSNCR_PART_NO],
+                                       c.LOT_NO,
+                                       c.DATE,
+                                       c.TIME,
+                                       c.MOLD_NO,
+                                       c.JUDGEMENT,
+                                       c.INSPECTOR,
+                                       c.APPROVE,
+                                       c.[WAIT_REINSPECTION],
+                                       c.[ACCEPT],
+                                       CASE WHEN c.APPROVE = 'Y' AND c.WAIT_REINSPECTION = 'Y' AND c.ACCEPT <> 'Y' 
+                                       THEN 'Waiting User Re-check' WHEN c.[ACCEPT] = 'Y' THEN 'Accept NG' 
+                                       ELSE 'Waiting Approve' END AS APPROVAL_STATUS
+                                FROM [QC_INSPECTION].[dbo].[v_FinalStatusQC_Checked] c
+                                GROUP BY c.[BSNCR_PART_NO], c.DATE, c.TIME, c.INSPECTOR, c.MOLD_NO, c.JUDGEMENT, c.LOT_NO, c.APPROVE, c.[WAIT_REINSPECTION],c.[ACCEPT]
+                            ) a 
+                            WHERE a.NG > 0 
+                        )
+                        SELECT * FROM CTE_STATUS a 
+                        WHERE a.APPROVAL_STATUS <> 'Accept NG'
+                        ORDER BY a.[BSNCR_PART_NO], a.DATE, a.TIME DESC ");
             $stmt->execute([]);
             $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
             if ($result) {
@@ -462,15 +468,12 @@ class InspectionController extends Model
                                        c.APPROVE,
                                        c.[WAIT_REINSPECTION],
                                        c.[ACCEPT],
-                                       CASE WHEN c.APPROVE = 'Y' 
-                                       AND c.WAIT_REINSPECTION = 'Y' 
-                                       THEN 'Waiting User Re-check' 
+                                       CASE WHEN c.APPROVE = 'Y' AND c.WAIT_REINSPECTION = 'Y' AND c.ACCEPT <> 'Y' 
+                                       THEN 'Waiting User Re-check' WHEN c.[ACCEPT] = 'Y' THEN 'Accept NG' 
                                        ELSE 'Waiting Approve' END AS APPROVAL_STATUS
                                 FROM [QC_INSPECTION].[dbo].[v_FinalStatusQC_Checked] c
                                 GROUP BY c.[BSNCR_PART_NO], c.DATE, c.TIME, c.INSPECTOR, c.MOLD_NO, c.JUDGEMENT, c.LOT_NO, c.APPROVE, c.[WAIT_REINSPECTION],c.ACCEPT
-                            ) a 
-                           WHERE a.NG > 0 AND a.ACCEPT <> 'Y'
-                            ) 
+                            ) a ) 
                             SELECT j.* from CTE j 
                             WHERE j.BSNCR_PART_NO = ? AND j.DATE = ? AND j.TIME = ? AND j.MOLD_NO = ?
                             ORDER BY j.[BSNCR_PART_NO], j.DATE, j.TIME DESC");
