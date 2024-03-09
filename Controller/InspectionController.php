@@ -35,23 +35,7 @@ class InspectionController extends Model
             echo json_encode(["err" => true, "msg" =>  $e->getMessage()]);
         }
     }
-    public function getStandardByPart2($req)
-    {
-        try {
-            $stmt = $this->conn->prepare("SELECT s.*,i.FILENAME ,p.[JUST_ON]FROM TBL_STANDARD s 
-            LEFT JOIN [dbo].[TBL_IMAGES] i ON i.[BSNCR_PART_NO] = s.BSNCR_PART_NO
-			LEFT JOIN [dbo].[TBL_INSPECTION_PART]p ON s.BSNCR_PART_NO = p.BSNCR_PART_NO
-            WHERE s.[BSNCR_PART_NO] =  ?
-            ORDER BY POINT_NO");
-            $stmt->execute([$req->bsthPartNo]);
-            $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
-            if ($result) {
-                echo json_encode(["err" => false, "result" =>  $result, "status" => "Ok"]);
-            }
-        } catch (PDOException $e) {
-            echo json_encode(["err" => true, "msg" =>  $e->getMessage()]);
-        }
-    }
+   
     public function checkNg($psthPartNo, $mold, $date, $time, $inspector,$lotNo)
     {
 
