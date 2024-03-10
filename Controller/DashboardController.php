@@ -28,9 +28,12 @@ class DashboardController extends Model
             s.LSL,
             s.USL
         FROM [dbo].[v_XBarChart] x LEFT JOIN [dbo].[TBL_STANDARD]s ON x.BSNCR_PART_NO = s.BSNCR_PART_NO 
-        AND x.POINT_NO = s.POINT_NO  WHERE x.BSNCR_PART_NO = ? AND x.MOLD_NO = ?
+        AND x.POINT_NO = s.POINT_NO  
+		WHERE x.BSNCR_PART_NO = ?
+		AND x.MOLD_NO = ? 
+		AND x.DATE_INSPECTION <= ?
         ORDER BY x.BSNCR_PART_NO,x.DATE_INSPECTION DESC");
-            $stmt->execute([$req->psthPartNo,$req->moldNo]);
+            $stmt->execute([$req->psthPartNo,$req->moldNo,$req->dateInspection]);
             $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
             if ($result) {
                 echo json_encode(["err" => false, "status" => "Ok", "result" => $result]);

@@ -346,8 +346,9 @@ class InspectionController extends Model
         try {
             $stmt = $this->conn->prepare("SELECT CONCAT(m.BSNCR_PART_NO,' #',m.MOLD_NO) as BSNCR_PART_NO,m.LOT_NO,m.CAVITY_NO,m.SIMPLE as SAMPLE,r.NAME_RESULT,m.INSPECTION_VALUE,m.DATE_INSPECTION FROM [dbo].[TBL_INSPECTION_MASTER]m 
             LEFT JOIN [dbo].[TBL_RESULTS] r ON m.ID_RESULT = r.ID_RESULT
-            WHERE m.BSNCR_PART_NO =  ? ORDER BY DATE_INSPECTION DESC");
-            $stmt->execute([$req->psthPartNo]);
+            WHERE m.BSNCR_PART_NO =  ? AND m.DATE_INSPECTION <= ?
+            ORDER BY DATE_INSPECTION DESC");
+            $stmt->execute([$req->psthPartNo,$req->date]);
             $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
             echo json_encode(["err" => false, "result" => $result, "status" => "Ok"]);
         } catch (PDOException $e) {
