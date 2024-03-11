@@ -259,7 +259,7 @@ class InspectionController extends Model
                         )
                         SELECT * FROM CTE_STATUS a 
                         WHERE a.APPROVAL_STATUS <> 'Accept NG'
-                        ORDER BY a.[BSNCR_PART_NO], a.DATE, a.TIME DESC ");
+                        ORDER BY a.[BSNCR_PART_NO], a.DATE, a.TIME DESC");
             $stmt->execute([]);
             $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
             if ($result) {
@@ -289,11 +289,14 @@ class InspectionController extends Model
                        c.INSPECTOR,
                        c.APPROVE,
                        c.[WAIT_REINSPECTION],
-                       CASE WHEN c.APPROVE = 'Y' AND c.WAIT_REINSPECTION = 'Y' THEN 'Waiting User Re-check' ELSE 'Waiting Approve' END AS APPROVAL_STATUS
+					    c.[ACCEPT],
+                      CASE WHEN c.APPROVE = 'Y' AND c.WAIT_REINSPECTION = 'Y' AND c.ACCEPT <> 'Y' 
+                                       THEN 'Waiting User Re-check' WHEN c.[ACCEPT] = 'Y' THEN 'Accept NG' 
+                                       ELSE 'Waiting Approve' END AS APPROVAL_STATUS
                 FROM [QC_INSPECTION].[dbo].[v_FinalStatusQC_Checked] c
-                GROUP BY c.[BSNCR_PART_NO], c.DATE, c.TIME, c.INSPECTOR, c.MOLD_NO, c.JUDGEMENT, c.LOT_NO, c.APPROVE, c.[WAIT_REINSPECTION]
-            ) a 
-            WHERE a.NG = 0
+                GROUP BY c.[BSNCR_PART_NO], c.DATE, c.TIME, c.INSPECTOR, c.MOLD_NO, c.JUDGEMENT, c.LOT_NO, c.APPROVE, c.[WAIT_REINSPECTION],c.[ACCEPT]
+            ) a WHERE a.NG = 0 AND a.APPROVAL_STATUS <> 'Accept NG'
+            
             ORDER BY a.[BSNCR_PART_NO], a.DATE, a.TIME DESC");
             $stmt->execute([]);
             $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
