@@ -235,7 +235,7 @@ class InspectionController extends Model
             $stmt =   $this->conn->prepare("WITH CTE_STATUS AS (
                 SELECT a.* 
                             FROM (
-                                SELECT ROW_NUMBER() OVER(ORDER BY c.[BSNCR_PART_NO] ASC) AS NO,
+                                SELECT
                                        COUNT([Id]) AS COUNT,
                                        SUM(CASE WHEN STATUS_PART = 'FG' THEN 1 ELSE 0 END) AS FG,
                                        SUM(CASE WHEN STATUS_PART = 'NG' THEN 1 ELSE 0 END) AS NG,
@@ -257,7 +257,7 @@ class InspectionController extends Model
                             ) a 
                             WHERE a.NG > 0 
                         )
-                        SELECT * FROM CTE_STATUS a 
+                        SELECT ROW_NUMBER() OVER(ORDER BY a.[BSNCR_PART_NO] ASC) AS NO,a.* FROM CTE_STATUS a 
                         WHERE a.APPROVAL_STATUS <> 'Accept NG'
                         ORDER BY a.[BSNCR_PART_NO], a.DATE, a.TIME DESC");
             $stmt->execute([]);
@@ -274,9 +274,9 @@ class InspectionController extends Model
     public function getInspectionFG()
     {
         try {
-            $stmt =   $this->conn->prepare("SELECT a.* 
+            $stmt =   $this->conn->prepare("SELECT ROW_NUMBER() OVER(ORDER BY a.[BSNCR_PART_NO] ASC) AS NO,a.* 
             FROM (
-                SELECT ROW_NUMBER() OVER(ORDER BY c.[BSNCR_PART_NO] ASC) AS NO,
+                SELECT 
                        COUNT([Id]) AS COUNT,
                        SUM(CASE WHEN STATUS_PART = 'FG' THEN 1 ELSE 0 END) AS FG,
                        SUM(CASE WHEN STATUS_PART = 'NG' THEN 1 ELSE 0 END) AS NG,
