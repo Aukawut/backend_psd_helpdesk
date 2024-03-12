@@ -20,10 +20,9 @@ class InspectionController extends Model
     public function getStandardByPart($req)
     {
         try {
-            $stmt = $this->conn->prepare("SELECT s.*,i.FILENAME ,p.[JUST_ON] ,c.[LCL],c.[UCL]  FROM TBL_STANDARD s 
+            $stmt = $this->conn->prepare("SELECT s.*,i.FILENAME ,p.[JUST_ON] FROM TBL_STANDARD s 
             LEFT JOIN [dbo].[TBL_IMAGES] i ON i.[BSNCR_PART_NO] = s.BSNCR_PART_NO
 			LEFT JOIN [dbo].[TBL_INSPECTION_PART]p ON s.BSNCR_PART_NO = p.BSNCR_PART_NO
-			LEFT JOIN [dbo].[ControlInspectionMaster]c ON s.BSNCR_PART_NO = c.BSNCR_PART_NO AND s.POINT_NO = c.POINT_NO
             WHERE s.[BSNCR_PART_NO] =  ?
             ORDER BY POINT_NO");
             $stmt->execute([$req->bsthPartNo]);
